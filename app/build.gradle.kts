@@ -23,10 +23,11 @@ android {
     }
     signingConfigs {
         create("release") {
-            // Retrieve keystore path and alias from gradle.properties
-            // Android Studio will prompt for passwords when generating signed builds.
-            storeFile = file(project.properties["CLEANSWEEP_RELEASE_STORE_FILE"] as String)
-            keyAlias = project.properties["CLEANSWEEP_RELEASE_KEY_ALIAS"] as String
+            val storeFilePath = project.findProperty("CLEANSWEEP_RELEASE_STORE_FILE") as? String
+            if (!storeFilePath.isNullOrEmpty()) {
+                storeFile = file(storeFilePath)
+            }
+            keyAlias = project.findProperty("CLEANSWEEP_RELEASE_KEY_ALIAS") as? String ?: ""
         }
     }
 
@@ -78,20 +79,6 @@ android {
             resources.excludes.add("META-INF/AL2.0")
             resources.excludes.add("META-INF/LGPL2.1")
             resources.excludes.add("META-INF/DEPENDENCIES")
-        }
-    }
-}
-
-androidComponents {
-    onVariants { variant ->
-        variant.outputs.forEach { output ->
-            val appName = "cleansweep"
-            val versionName = output.versionName.get()
-            val buildType = variant.buildType
-
-            (output as? com.android.build.api.variant.impl.VariantOutputImpl)?.outputFileName?.set(
-                "$appName-v$versionName-$buildType.apk"
-            )
         }
     }
 }
