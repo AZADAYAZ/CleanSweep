@@ -1,11 +1,21 @@
 name: Build APK
-on: push
+on: workflow_dispatch
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
       - uses: expo/expo-github-action@v8
         with:
           expo-token: ${{ secrets.EXPO_TOKEN }}
+          
       - run: eas build -p android --profile preview --non-interactive
