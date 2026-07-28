@@ -125,7 +125,7 @@ data class SwiperUiState(
     val mediaItemMenuOffset: DpOffset = DpOffset.Zero,
     val videoPlaybackPosition: Long = 0L,
     val videoPlaybackSpeed: Float = 1.0f,
-    val isVideoMuted: Boolean = true,
+    val isVideoMuted: Boolean = false,
     val showRenameDialogForPath: String? = null,
     val showConfirmExitDialog: Boolean = false,
     val currentTheme: AppTheme = AppTheme.SYSTEM,
