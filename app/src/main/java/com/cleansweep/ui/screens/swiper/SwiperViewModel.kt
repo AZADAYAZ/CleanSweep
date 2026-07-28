@@ -659,7 +659,7 @@ class SwiperViewModel @Inject constructor(
                     showSummarySheet = isSortingComplete && newPendingChanges.isNotEmpty(),
                     videoPlaybackPosition = 0L,
                     videoPlaybackSpeed = _defaultVideoSpeed,
-                    isVideoMuted = true,
+                    isVideoMuted = false,
                     isCurrentItemPendingConversion = false,
                     toDelete = summary.toDelete,
                     toKeep = summary.toKeep,
