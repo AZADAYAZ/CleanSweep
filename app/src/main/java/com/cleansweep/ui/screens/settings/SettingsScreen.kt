@@ -84,7 +84,7 @@ import com.cleansweep.data.repository.FolderBarLayout
 import com.cleansweep.data.repository.FolderNameLayout
 import com.cleansweep.data.repository.FolderSelectionMode
 import com.cleansweep.data.repository.SimilarityThresholdLevel
-import com.cleansweep.data.repository.SwipeDownAction
+import com.cleansweep.data.repository.SwipeAction
 import com.cleansweep.data.repository.SwipeSensitivity
 import com.cleansweep.data.repository.UnselectScanScope
 import com.cleansweep.ui.components.AppDialog
@@ -187,6 +187,9 @@ fun SettingsScreen(
     val addFolderFocusTarget by viewModel.addFolderFocusTarget.collectAsState()
     val swipeSensitivity by viewModel.swipeSensitivity.collectAsState()
     val swipeDownAction by viewModel.swipeDownAction.collectAsState()
+    val swipeRightAction by viewModel.swipeRightAction.collectAsState()
+    val swipeLeftAction by viewModel.swipeLeftAction.collectAsState()
+    val swipeUpAction by viewModel.swipeUpAction.collectAsState()
     val addFavoriteToTargetByDefault by viewModel.addFavoriteToTargetByDefault.collectAsState()
     val hintOnExistingFolderName by viewModel.hintOnExistingFolderName.collectAsState()
     val pathOptions = viewModel.standardAlbumDirectories
@@ -405,14 +408,44 @@ fun SettingsScreen(
                                 onOptionSelected = { viewModel.setSwipeSensitivity(it) },
                                 getDisplayName = { getSwipeSensitivityDisplayName(it) })
                         },
+                        SettingContent(titleRes = R.string.swipe_right_action_title, keywords = listOf("gesture", "shortcut", "next", "keep")) {
+                            ExposedDropdownMenu(
+                                titleRes = R.string.swipe_right_action_title,
+                                descriptionRes = R.string.swipe_right_action_desc,
+                                options = SwipeAction.entries,
+                                selectedOption = swipeRightAction,
+                                onOptionSelected = { viewModel.setSwipeRightAction(it) },
+                                getDisplayName = { getSwipeActionDisplayName(it) }
+                            )
+                        },
+                        SettingContent(titleRes = R.string.swipe_left_action_title, keywords = listOf("gesture", "shortcut", "previous", "delete")) {
+                            ExposedDropdownMenu(
+                                titleRes = R.string.swipe_left_action_title,
+                                descriptionRes = R.string.swipe_left_action_desc,
+                                options = SwipeAction.entries,
+                                selectedOption = swipeLeftAction,
+                                onOptionSelected = { viewModel.setSwipeLeftAction(it) },
+                                getDisplayName = { getSwipeActionDisplayName(it) }
+                            )
+                        },
+                        SettingContent(titleRes = R.string.swipe_up_action_title, keywords = listOf("gesture", "shortcut", "skip")) {
+                            ExposedDropdownMenu(
+                                titleRes = R.string.swipe_up_action_title,
+                                descriptionRes = R.string.swipe_up_action_desc,
+                                options = SwipeAction.entries,
+                                selectedOption = swipeUpAction,
+                                onOptionSelected = { viewModel.setSwipeUpAction(it) },
+                                getDisplayName = { getSwipeActionDisplayName(it) }
+                            )
+                        },
                         SettingContent(titleRes = R.string.swipe_down_action_title, keywords = listOf("gesture", "shortcut", "edit", "skip", "add folder", "share", "open")) {
                             ExposedDropdownMenu(
                                 titleRes = R.string.swipe_down_action_title,
                                 descriptionRes = R.string.swipe_down_action_desc,
-                                options = SwipeDownAction.entries,
+                                options = SwipeAction.entries,
                                 selectedOption = swipeDownAction,
                                 onOptionSelected = { viewModel.setSwipeDownAction(it) },
-                                getDisplayName = { getSwipeDownActionDisplayName(it) }
+                                getDisplayName = { getSwipeActionDisplayName(it) }
                             )
                         },
                         SettingContent(titleRes = R.string.full_screen_swipe_title, keywords = listOf("gesture area", "background")) {
@@ -1640,7 +1673,7 @@ private fun getAppLocaleDisplayName(locale: AppLocale): String {
     return when (locale) {
         AppLocale.SYSTEM -> stringResource(R.string.language_system)
         AppLocale.ENGLISH -> stringResource(R.string.language_english)
-        AppLocale.ITALIAN -> stringResource(R.string.language_italian)
+        AppLocale.TURKISH -> stringResource(R.string.language_turkish)
     }
 }
 
@@ -1654,14 +1687,18 @@ private fun getSwipeSensitivityDisplayName(sensitivity: SwipeSensitivity): Strin
 }
 
 @Composable
-private fun getSwipeDownActionDisplayName(action: SwipeDownAction): String {
+private fun getSwipeActionDisplayName(action: SwipeAction): String {
     return when (action) {
-        SwipeDownAction.NONE -> stringResource(R.string.action_none)
-        SwipeDownAction.MOVE_TO_EDIT -> stringResource(R.string.move_to_to_edit)
-        SwipeDownAction.SKIP_ITEM -> stringResource(R.string.skip_item)
-        SwipeDownAction.ADD_TARGET_FOLDER -> stringResource(R.string.add_target_folder)
-        SwipeDownAction.SHARE -> stringResource(R.string.share)
-        SwipeDownAction.OPEN_WITH -> stringResource(R.string.open_with)
+        SwipeAction.NONE -> stringResource(R.string.action_none)
+        SwipeAction.KEEP -> stringResource(R.string.action_keep)
+        SwipeAction.DELETE -> stringResource(R.string.action_delete)
+        SwipeAction.NEXT -> stringResource(R.string.action_next)
+        SwipeAction.PREVIOUS -> stringResource(R.string.action_previous)
+        SwipeAction.SKIP -> stringResource(R.string.action_skip_item)
+        SwipeAction.MOVE_TO_EDIT -> stringResource(R.string.action_move_to_edit)
+        SwipeAction.ADD_TARGET_FOLDER -> stringResource(R.string.action_add_target_folder)
+        SwipeAction.SHARE -> stringResource(R.string.action_share)
+        SwipeAction.OPEN_WITH -> stringResource(R.string.action_open_with)
     }
 }
 

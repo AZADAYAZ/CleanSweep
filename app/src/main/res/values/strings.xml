@@ -367,7 +367,7 @@
     <string name="language_desc">Choose your preferred language.</string>
     <string name="language_system">System Default</string>
     <string name="language_english">English</string>
-    <string name="language_italian">Italiano</string>
+    <string name="language_turkish">Türkçe</string>
 
     <!-- Theme Settings -->
     <string name="theme_title">Theme</string>
@@ -416,7 +416,17 @@
     <string name="sensitivity_high">High</string>
     <string name="swipe_down_action_title">Swipe Down Action</string>
     <string name="swipe_down_action_desc">Assign a shortcut to the swipe down gesture on a media card.</string>
+    <string name="swipe_right_action_title">Swipe Right Action</string>
+    <string name="swipe_right_action_desc">Assign a shortcut to the swipe right gesture on a media card.</string>
+    <string name="swipe_left_action_title">Swipe Left Action</string>
+    <string name="swipe_left_action_desc">Assign a shortcut to the swipe left gesture on a media card.</string>
+    <string name="swipe_up_action_title">Swipe Up Action</string>
+    <string name="swipe_up_action_desc">Assign a shortcut to the swipe up gesture on a media card.</string>
     <string name="action_none">None</string>
+    <string name="action_keep">Keep</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_next">Next Media</string>
+    <string name="action_previous">Previous Media</string>
     <string name="full_screen_swipe_title">Full Screen Swipe</string>
     <string name="full_screen_swipe_desc">Allow swiping on the background area, not just the image itself.</string>
 

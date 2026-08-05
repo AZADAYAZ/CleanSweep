@@ -36,7 +36,7 @@ import com.cleansweep.data.repository.FolderBarLayout
 import com.cleansweep.data.repository.FolderNameLayout
 import com.cleansweep.data.repository.PreferencesRepository
 import com.cleansweep.data.repository.SummaryViewMode
-import com.cleansweep.data.repository.SwipeDownAction
+import com.cleansweep.data.repository.SwipeAction
 import com.cleansweep.data.repository.SwipeSensitivity
 import com.cleansweep.di.AppModule
 import com.cleansweep.domain.bus.AppLifecycleEventBus
@@ -184,8 +184,17 @@ class SwiperViewModel @Inject constructor(
     val swipeSensitivity: StateFlow<SwipeSensitivity> = preferencesRepository.swipeSensitivityFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SwipeSensitivity.MEDIUM)
 
-    val swipeDownAction: StateFlow<SwipeDownAction> = preferencesRepository.swipeDownActionFlow
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SwipeDownAction.NONE)
+    val swipeDownAction: StateFlow<SwipeAction> = preferencesRepository.swipeDownActionFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SwipeAction.NONE)
+
+    val swipeRightAction: StateFlow<SwipeAction> = preferencesRepository.swipeRightActionFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SwipeAction.KEEP)
+
+    val swipeLeftAction: StateFlow<SwipeAction> = preferencesRepository.swipeLeftActionFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SwipeAction.DELETE)
+
+    val swipeUpAction: StateFlow<SwipeAction> = preferencesRepository.swipeUpActionFlow
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SwipeAction.SKIP)
 
     val rememberProcessedMedia: StateFlow<Boolean> = preferencesRepository.rememberProcessedMediaFlow
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
@@ -671,28 +680,75 @@ class SwiperViewModel @Inject constructor(
     }
 
     fun handleSwipeLeft() {
-        val currentItem = _uiState.value.currentItem ?: return
-        val change = PendingChange(currentItem, if (_invertSwipe) SwiperAction.Keep(currentItem) else SwiperAction.Delete(currentItem))
-        processAndAdvance(change)
+        viewModelScope.launch {
+            executeSwipeAction(swipeLeftAction.first())
+        }
     }
 
     fun handleSwipeRight() {
-        val currentItem = _uiState.value.currentItem ?: return
-        val change = PendingChange(currentItem, if (_invertSwipe) SwiperAction.Delete(currentItem) else SwiperAction.Keep(currentItem))
-        processAndAdvance(change)
+        viewModelScope.launch {
+            executeSwipeAction(swipeRightAction.first())
+        }
+    }
+
+    fun handleSwipeUp() {
+        viewModelScope.launch {
+            executeSwipeAction(swipeUpAction.first())
+        }
     }
 
     fun handleSwipeDown() {
-        val currentItem = _uiState.value.currentItem ?: return
         viewModelScope.launch {
-            when(swipeDownAction.first()) {
-                SwipeDownAction.NONE -> { /* Do nothing */ }
-                SwipeDownAction.MOVE_TO_EDIT -> moveToEditFolder()
-                SwipeDownAction.SKIP_ITEM -> handleSkip()
-                SwipeDownAction.ADD_TARGET_FOLDER -> showAddTargetFolderDialog()
-                SwipeDownAction.SHARE -> shareCurrentItem()
-                SwipeDownAction.OPEN_WITH -> openCurrentItem()
+            executeSwipeAction(swipeDownAction.first())
+        }
+    }
+
+    private suspend fun executeSwipeAction(action: SwipeAction) {
+        val currentItem = _uiState.value.currentItem ?: return
+        when (action) {
+            SwipeAction.NONE -> { /* Do nothing */ }
+            SwipeAction.KEEP -> {
+                val change = PendingChange(currentItem, if (_invertSwipe) SwiperAction.Delete(currentItem) else SwiperAction.Keep(currentItem))
+                processAndAdvance(change)
             }
+            SwipeAction.DELETE -> {
+                val change = PendingChange(currentItem, if (_invertSwipe) SwiperAction.Keep(currentItem) else SwiperAction.Delete(currentItem))
+                processAndAdvance(change)
+            }
+            SwipeAction.NEXT -> handleSkip()
+            SwipeAction.PREVIOUS -> navigateToPreviousItem()
+            SwipeAction.SKIP -> handleSkip()
+            SwipeAction.MOVE_TO_EDIT -> moveToEditFolder()
+            SwipeAction.ADD_TARGET_FOLDER -> showAddTargetFolderDialog()
+            SwipeAction.SHARE -> shareCurrentItem()
+            SwipeAction.OPEN_WITH -> openCurrentItem()
+        }
+    }
+
+    fun navigateToPreviousItem() {
+        _uiState.update { currentState ->
+            if (currentState.currentIndex <= 0) return@update currentState
+
+            val prevIndex = currentState.currentIndex - 1
+            val prevItem = currentState.allMediaItems.getOrNull(prevIndex)
+
+            // When going back, we might want to remove it from skipped IDs if it was there
+            val newSkippedIds = if (prevItem != null) {
+                currentState.sessionSkippedMediaIds - prevItem.id
+            } else {
+                currentState.sessionSkippedMediaIds
+            }
+
+            currentState.copy(
+                currentIndex = prevIndex,
+                currentItem = prevItem,
+                isSortingComplete = false,
+                sessionSkippedMediaIds = newSkippedIds,
+                videoPlaybackPosition = 0L,
+                videoPlaybackSpeed = _defaultVideoSpeed,
+                isVideoMuted = false,
+                isCurrentItemPendingConversion = false
+            )
         }
     }
 
