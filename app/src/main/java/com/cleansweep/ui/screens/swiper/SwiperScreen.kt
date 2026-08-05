@@ -101,7 +101,7 @@ import com.cleansweep.R
 import com.cleansweep.data.model.MediaItem
 import com.cleansweep.data.repository.FolderBarLayout
 import com.cleansweep.data.repository.FolderNameLayout
-import com.cleansweep.data.repository.SwipeDownAction
+import com.cleansweep.data.repository.SwipeAction
 import com.cleansweep.data.repository.SwipeSensitivity
 import com.cleansweep.ui.components.AppDropdownMenu
 import com.cleansweep.ui.components.AppMenuDivider
@@ -139,6 +139,9 @@ fun SwiperScreen(
     val invertSwipe by viewModel.invertSwipe.collectAsState()
     val swipeSensitivity by viewModel.swipeSensitivity.collectAsState()
     val swipeDownAction by viewModel.swipeDownAction.collectAsState()
+    val swipeRightAction by viewModel.swipeRightAction.collectAsState()
+    val swipeLeftAction by viewModel.swipeLeftAction.collectAsState()
+    val swipeUpAction by viewModel.swipeUpAction.collectAsState()
     val folderBarLayout by viewModel.folderBarLayout.collectAsState()
     val folderNameLayout by viewModel.folderNameLayout.collectAsState()
     val skipPartialExpansion by viewModel.skipPartialExpansion.collectAsState()
@@ -318,7 +321,8 @@ fun SwiperScreen(
                                 val hasAudio = exoPlayer.currentTracks.isTypeSupported(C.TRACK_TYPE_AUDIO)
                                 viewModel.toggleMute(hasAudio)
                             }
-                            return@onKeyEvent true
+                            // Return false to allow the system to handle the volume change
+                            return@onKeyEvent false
                         }
                     }
                     false
@@ -340,6 +344,7 @@ fun SwiperScreen(
                                 gifImageLoader = viewModel.gifImageLoader,
                                 onSwipeLeft = viewModel::handleSwipeLeft,
                                 onSwipeRight = viewModel::handleSwipeRight,
+                                onSwipeUp = viewModel::handleSwipeUp,
                                 onSwipeDown = viewModel::handleSwipeDown,
                                 onLongPress = viewModel::showMediaItemMenu,
                                 hideFilename = uiState.hideFilename,
@@ -401,6 +406,7 @@ fun SwiperScreen(
                                 gifImageLoader = viewModel.gifImageLoader,
                                 onSwipeLeft = viewModel::handleSwipeLeft,
                                 onSwipeRight = viewModel::handleSwipeRight,
+                                onSwipeUp = viewModel::handleSwipeUp,
                                 onSwipeDown = viewModel::handleSwipeDown,
                                 onLongPress = viewModel::showMediaItemMenu,
                                 hideFilename = uiState.hideFilename,
@@ -1372,10 +1378,7 @@ private fun MediaItemCard(
                                     if (abs(dragAmount.x) > abs(dragAmount.y) && scale <= 1f) {
                                         swipeOffsetX += dragAmount.x
                                     } else if (abs(dragAmount.y) > abs(dragAmount.x) && scale <= 1f) {
-                                        if (swipeDownAction != SwipeDownAction.NONE) {
-                                            // Prevent dragging card upwards
-                                            swipeOffsetY = (swipeOffsetY + dragAmount.y).coerceAtLeast(0f)
-                                        }
+                                        swipeOffsetY += dragAmount.y
                                     }
                                     change.consume()
                                 }
@@ -1388,15 +1391,11 @@ private fun MediaItemCard(
                             when {
                                 swipeOffsetX < -swipeThreshold -> onSwipeLeft()
                                 swipeOffsetX > swipeThreshold -> onSwipeRight()
-                                swipeOffsetY > swipeDownThreshold -> {
-                                    onSwipeDown()
-                                    swipeOffsetY = 0f
-                                }
-                                else -> {
-                                    swipeOffsetX = 0f
-                                    swipeOffsetY = 0f
-                                }
+                                swipeOffsetY > swipeDownThreshold -> onSwipeDown()
+                                swipeOffsetY < -swipeDownThreshold -> onSwipeUp()
                             }
+                            swipeOffsetX = 0f
+                            swipeOffsetY = 0f
                         } else if (!wasTransforming && !longPressFired) {
                             if (scale > 1f) {
                                 scale = 1f

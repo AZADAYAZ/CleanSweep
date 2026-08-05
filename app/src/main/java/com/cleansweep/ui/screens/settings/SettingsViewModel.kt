@@ -31,7 +31,7 @@ import com.cleansweep.data.repository.FolderNameLayout
 import com.cleansweep.data.repository.FolderSelectionMode
 import com.cleansweep.data.repository.PreferencesRepository
 import com.cleansweep.data.repository.SimilarityThresholdLevel
-import com.cleansweep.data.repository.SwipeDownAction
+import com.cleansweep.data.repository.SwipeAction
 import com.cleansweep.data.repository.SwipeSensitivity
 import com.cleansweep.data.repository.UnselectScanScope
 import com.cleansweep.domain.bus.AppLifecycleEventBus
@@ -286,12 +286,36 @@ class SettingsViewModel @Inject constructor(
                 initialValue = SwipeSensitivity.MEDIUM
             )
 
-    val swipeDownAction: StateFlow<SwipeDownAction> =
+    val swipeDownAction: StateFlow<SwipeAction> =
         preferencesRepository.swipeDownActionFlow
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = SwipeDownAction.NONE
+                initialValue = SwipeAction.NONE
+            )
+
+    val swipeRightAction: StateFlow<SwipeAction> =
+        preferencesRepository.swipeRightActionFlow
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = SwipeAction.KEEP
+            )
+
+    val swipeLeftAction: StateFlow<SwipeAction> =
+        preferencesRepository.swipeLeftActionFlow
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = SwipeAction.DELETE
+            )
+
+    val swipeUpAction: StateFlow<SwipeAction> =
+        preferencesRepository.swipeUpActionFlow
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = SwipeAction.SKIP
             )
 
     val addFavoriteToTargetByDefault: StateFlow<Boolean> =
@@ -693,9 +717,27 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun setSwipeDownAction(action: SwipeDownAction) {
+    fun setSwipeDownAction(action: SwipeAction) {
         viewModelScope.launch {
             preferencesRepository.setSwipeDownAction(action)
+        }
+    }
+
+    fun setSwipeRightAction(action: SwipeAction) {
+        viewModelScope.launch {
+            preferencesRepository.setSwipeRightAction(action)
+        }
+    }
+
+    fun setSwipeLeftAction(action: SwipeAction) {
+        viewModelScope.launch {
+            preferencesRepository.setSwipeLeftAction(action)
+        }
+    }
+
+    fun setSwipeUpAction(action: SwipeAction) {
+        viewModelScope.launch {
+            preferencesRepository.setSwipeUpAction(action)
         }
     }
 

@@ -367,7 +367,7 @@
     <string name="language_desc">Tercih ettiğiniz dili seçin.</string>
     <string name="language_system">Sistem Varsayılanı</string>
     <string name="language_english">English</string>
-    <string name="language_italian">Italiano</string>
+    <string name="language_turkish">Türkçe</string>
 
     <!-- Theme Settings -->
     <string name="theme_title">Tema</string>
@@ -416,7 +416,22 @@
     <string name="sensitivity_high">Yüksek</string>
     <string name="swipe_down_action_title">Aşağı Kaydırma Eylemi</string>
     <string name="swipe_down_action_desc">Bir medya kartında aşağı kaydırma hareketine bir kısayol atayın.</string>
+    <string name="swipe_right_action_title">Sağa Kaydırma Eylemi</string>
+    <string name="swipe_right_action_desc">Bir medya kartında sağa kaydırma hareketine bir kısayol atayın.</string>
+    <string name="swipe_left_action_title">Sola Kaydırma Eylemi</string>
+    <string name="swipe_left_action_desc">Bir medya kartında sola kaydırma hareketine bir kısayol atayın.</string>
+    <string name="swipe_up_action_title">Yukarı Kaydırma Eylemi</string>
+    <string name="swipe_up_action_desc">Bir medya kartında yukarı kaydırma hareketine bir kısayol atayın.</string>
     <string name="action_none">Yok</string>
+    <string name="action_keep">Tut</string>
+    <string name="action_delete">Sil</string>
+    <string name="action_next">Sonraki Medya</string>
+    <string name="action_previous">Önceki Medya</string>
+    <string name="action_skip_item">Öğeyi Atla</string>
+    <string name="action_move_to_edit">\'Düzenlenecekler\'e Taşı</string>
+    <string name="action_add_target_folder">Hedef Klasör Ekle</string>
+    <string name="action_share">Paylaş</string>
+    <string name="action_open_with">Birlikte Aç</string>
     <string name="full_screen_swipe_title">Tam Ekran Kaydırma</string>
     <string name="full_screen_swipe_desc">Sadece görselin üzerinde değil, arka plan alanında da kaydırmaya izin ver.</string>
 

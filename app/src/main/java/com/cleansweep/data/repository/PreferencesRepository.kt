@@ -85,10 +85,14 @@ enum class DuplicateScanScope {
     EXCLUDE_LIST
 }
 
-enum class SwipeDownAction {
+enum class SwipeAction {
     NONE,
+    KEEP,
+    DELETE,
+    NEXT,
+    PREVIOUS,
+    SKIP,
     MOVE_TO_EDIT,
-    SKIP_ITEM,
     ADD_TARGET_FOLDER,
     SHARE,
     OPEN_WITH
@@ -102,7 +106,7 @@ enum class UnselectScanScope {
 enum class AppLocale(val tag: String?) {
     SYSTEM(null),
     ENGLISH("en"),
-    ITALIAN("it")
+    TURKISH("tr")
 }
 
 
@@ -156,6 +160,9 @@ class PreferencesRepository @Inject constructor(
         val DUPLICATE_SCAN_INCLUDE_LIST = stringPreferencesKey("duplicate_scan_include_list")
         val DUPLICATE_SCAN_EXCLUDE_LIST = stringPreferencesKey("duplicate_scan_exclude_list")
         val SWIPE_DOWN_ACTION = stringPreferencesKey("swipe_down_action")
+        val SWIPE_RIGHT_ACTION = stringPreferencesKey("swipe_right_action")
+        val SWIPE_LEFT_ACTION = stringPreferencesKey("swipe_left_action")
+        val SWIPE_UP_ACTION = stringPreferencesKey("swipe_up_action")
 
         val DEFAULT_VIDEO_SPEED = floatPreferencesKey("default_video_speed")
 
@@ -392,13 +399,43 @@ class PreferencesRepository @Inject constructor(
             }
         }
 
-    val swipeDownActionFlow: Flow<SwipeDownAction> = context.dataStore.data
+    val swipeDownActionFlow: Flow<SwipeAction> = context.dataStore.data
         .map { preferences ->
-            val actionName = preferences[PreferencesKeys.SWIPE_DOWN_ACTION] ?: SwipeDownAction.NONE.name
+            val actionName = preferences[PreferencesKeys.SWIPE_DOWN_ACTION] ?: SwipeAction.NONE.name
             try {
-                SwipeDownAction.valueOf(actionName)
+                SwipeAction.valueOf(actionName)
             } catch (e: IllegalArgumentException) {
-                SwipeDownAction.NONE
+                SwipeAction.NONE
+            }
+        }
+
+    val swipeRightActionFlow: Flow<SwipeAction> = context.dataStore.data
+        .map { preferences ->
+            val actionName = preferences[PreferencesKeys.SWIPE_RIGHT_ACTION] ?: SwipeAction.KEEP.name
+            try {
+                SwipeAction.valueOf(actionName)
+            } catch (e: IllegalArgumentException) {
+                SwipeAction.KEEP
+            }
+        }
+
+    val swipeLeftActionFlow: Flow<SwipeAction> = context.dataStore.data
+        .map { preferences ->
+            val actionName = preferences[PreferencesKeys.SWIPE_LEFT_ACTION] ?: SwipeAction.DELETE.name
+            try {
+                SwipeAction.valueOf(actionName)
+            } catch (e: IllegalArgumentException) {
+                SwipeAction.DELETE
+            }
+        }
+
+    val swipeUpActionFlow: Flow<SwipeAction> = context.dataStore.data
+        .map { preferences ->
+            val actionName = preferences[PreferencesKeys.SWIPE_UP_ACTION] ?: SwipeAction.SKIP.name
+            try {
+                SwipeAction.valueOf(actionName)
+            } catch (e: IllegalArgumentException) {
+                SwipeAction.SKIP
             }
         }
 
@@ -757,9 +794,27 @@ class PreferencesRepository @Inject constructor(
         }
     }
 
-    suspend fun setSwipeDownAction(action: SwipeDownAction) {
+    suspend fun setSwipeDownAction(action: SwipeAction) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.SWIPE_DOWN_ACTION] = action.name
+        }
+    }
+
+    suspend fun setSwipeRightAction(action: SwipeAction) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SWIPE_RIGHT_ACTION] = action.name
+        }
+    }
+
+    suspend fun setSwipeLeftAction(action: SwipeAction) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SWIPE_LEFT_ACTION] = action.name
+        }
+    }
+
+    suspend fun setSwipeUpAction(action: SwipeAction) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SWIPE_UP_ACTION] = action.name
         }
     }
 
