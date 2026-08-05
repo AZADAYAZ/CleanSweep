@@ -16,7 +16,7 @@
   ~ along with this program. If not, see <https://www.gnu.org/licenses/>.
   -->
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <string name="app_name">CleanSweep</string>
+    <string name="app_name">TemizSüpürge</string>
 
     <!-- General / Common -->
     <string name="confirm">Onayla</string>
