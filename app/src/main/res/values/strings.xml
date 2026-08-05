@@ -427,6 +427,11 @@
     <string name="action_delete">Delete</string>
     <string name="action_next">Next Media</string>
     <string name="action_previous">Previous Media</string>
+    <string name="action_skip_item">Skip Item</string>
+    <string name="action_move_to_edit">Move to Edit</string>
+    <string name="action_add_target_folder">Add Target Folder</string>
+    <string name="action_share">Share</string>
+    <string name="action_open_with">Open With</string>
     <string name="full_screen_swipe_title">Full Screen Swipe</string>
     <string name="full_screen_swipe_desc">Allow swiping on the background area, not just the image itself.</string>
 
