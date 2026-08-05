@@ -401,31 +401,31 @@ class PreferencesRepository @Inject constructor(
 
     val swipeDownActionFlow: Flow<SwipeAction> = context.dataStore.data
         .map { preferences ->
-            val actionName = preferences[PreferencesKeys.SWIPE_DOWN_ACTION] ?: SwipeAction.NONE.name
+            val actionName = preferences[PreferencesKeys.SWIPE_DOWN_ACTION] ?: SwipeAction.DELETE.name
             try {
                 SwipeAction.valueOf(actionName)
             } catch (e: IllegalArgumentException) {
-                SwipeAction.NONE
+                SwipeAction.DELETE
             }
         }
 
     val swipeRightActionFlow: Flow<SwipeAction> = context.dataStore.data
         .map { preferences ->
-            val actionName = preferences[PreferencesKeys.SWIPE_RIGHT_ACTION] ?: SwipeAction.KEEP.name
+            val actionName = preferences[PreferencesKeys.SWIPE_RIGHT_ACTION] ?: SwipeAction.PREVIOUS.name
             try {
                 SwipeAction.valueOf(actionName)
             } catch (e: IllegalArgumentException) {
-                SwipeAction.KEEP
+                SwipeAction.PREVIOUS
             }
         }
 
     val swipeLeftActionFlow: Flow<SwipeAction> = context.dataStore.data
         .map { preferences ->
-            val actionName = preferences[PreferencesKeys.SWIPE_LEFT_ACTION] ?: SwipeAction.DELETE.name
+            val actionName = preferences[PreferencesKeys.SWIPE_LEFT_ACTION] ?: SwipeAction.NEXT.name
             try {
                 SwipeAction.valueOf(actionName)
             } catch (e: IllegalArgumentException) {
-                SwipeAction.DELETE
+                SwipeAction.NEXT
             }
         }
 
