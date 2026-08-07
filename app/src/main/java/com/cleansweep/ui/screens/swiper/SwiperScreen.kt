@@ -1562,16 +1562,16 @@ private fun MediaItemCard(
                                 }
                             } else if (item.isAudio) {
                                 // Audio playback controls: play/pause + seek bar
+                                var audioPosition by remember { mutableLongStateOf(exoPlayer.currentPosition) }
+                                var isDragging by remember { mutableStateOf(false) }
                                 DisposableEffect(item.id) {
                                     val listener = object : Player.Listener {
                                         override fun onEvents(player: Player, events: Player.Events) {
                                             if (events.containsAny(
-                                                    Player.EVENT_IS_PLAYING_CHANGED,
-                                                    Player.EVENT_PLAYBACK_STATE_CHANGED,
                                                     Player.EVENT_POSITION_DISCONTINUITY
                                                 )
                                             ) {
-                                                // Trigger recomposition to refresh slider value
+                                                audioPosition = exoPlayer.currentPosition
                                             }
                                         }
                                     }
@@ -1580,8 +1580,10 @@ private fun MediaItemCard(
                                 }
                                 LaunchedEffect(item.id) {
                                     while (true) {
-                                        delay(500L)
-                                        // Tick forces recomposition to refresh slider position
+                                        delay(250L)
+                                        if (!isDragging) {
+                                            audioPosition = exoPlayer.currentPosition
+                                        }
                                     }
                                 }
                                 Column(
@@ -1610,9 +1612,14 @@ private fun MediaItemCard(
                                     }
                                     if (item.duration > 0) {
                                         Slider(
-                                            value = exoPlayer.currentPosition.coerceIn(0L, item.duration.coerceAtLeast(1L)).toFloat(),
+                                            value = audioPosition.coerceIn(0L, item.duration.coerceAtLeast(1L)).toFloat(),
                                             onValueChange = { newValue ->
+                                                isDragging = true
                                                 exoPlayer.seekTo(newValue.toLong())
+                                            },
+                                            onValueChangeFinished = {
+                                                isDragging = false
+                                                audioPosition = exoPlayer.currentPosition
                                             },
                                             valueRange = 0f..item.duration.coerceAtLeast(1L).toFloat(),
                                             modifier = Modifier.fillMaxWidth(),
@@ -1629,7 +1636,7 @@ private fun MediaItemCard(
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Text(
-                                                text = formatDuration(exoPlayer.currentPosition),
+                                                text = formatDuration(audioPosition),
                                                 color = Color.White.copy(alpha = 0.8f),
                                                 style = MaterialTheme.typography.labelSmall
                                             )
