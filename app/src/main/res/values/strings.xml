@@ -1,24 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-  ~ CleanSweep
-  ~ Copyright (c) 2025 LoopOtto
-  ~
-  ~ This program is free software: you can redistribute it and/or modify
-  ~ it under the terms of the GNU General Public License as published by
-  ~ the Free Software Foundation, either version 3 of the License, or any later version.
-  ~
-  ~ This program is distributed in the hope that it will be useful,
-  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
-  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-  ~ GNU General Public License for more details.
-  ~
-  ~ You should have received a copy of the GNU General Public License
-  ~ along with this program. If not, see <https://www.gnu.org/licenses/>.
-  -->
+<?xml version='1.0' encoding='utf-8'?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name">CleanSweep</string>
 
-    <!-- General / Common -->
+    
     <string name="confirm">Onayla</string>
     <string name="cancel">İptal</string>
     <string name="delete">Sil</string>
@@ -45,7 +29,7 @@
     <string name="skip">Atla</string>
     <string name="reset">Sıfırla</string>
 
-    <!-- File Operations -->
+    
     <string name="filename_copied">Dosya adı kopyalandı!</string>
     <string name="folder_renamed_success">Klasör başarıyla yeniden adlandırıldı.</string>
     <plurals name="files_deleted_success">
@@ -65,7 +49,7 @@
     <string name="file_size_label">Boyut: %1$s</string>
     <string name="export_filename_default">hedef_favoriler.json</string>
 
-    <!-- Session Setup Screen -->
+    
     <string name="select_folders_title">Klasörleri Seç</string>
     <string name="start_session">Oturumu Başlat</string>
     <string name="search_hint">Ara</string>
@@ -118,7 +102,7 @@
     <string name="favorite">Favori</string>
     <string name="unfavorite">Favoriden Çıkar</string>
 
-    <!-- Swiper Screen -->
+    
     <string name="unsaved_changes_title">Kaydedilmemiş Değişiklikler</string>
     <string name="unsaved_changes_message">Kaydedilmemiş değişiklikleriniz var. Yine de çıkmak istediğinize emin misiniz?</string>
     <string name="exit_anyway">Yine de Çık</string>
@@ -177,7 +161,7 @@
     <string name="confirm_changes_title">Değişiklikleri Onayla</string>
     <string name="confirm_changes_body">Bu değişiklikleri dosyalarınıza uygulamak istediğinize emin misiniz?</string>
 
-    <!-- Plurals -->
+    
     <plurals name="skipped_session_items_plurals">
         <item quantity="one">Bu oturum sırasında 1 öğeyi atladınız.</item>
         <item quantity="other">Bu oturum sırasında %d öğeyi atladınız.</item>
@@ -191,7 +175,7 @@
         <item quantity="other">%d dosya okunamadı</item>
     </plurals>
 
-    <!-- Duplicates Screen -->
+    
     <string name="duplicate_finder_title">Kopya Bulucu</string>
     <string name="scanning_phase">Taranıyor…</string>
     <string name="scanning_preparing_phase">Hazırlanıyor…</string>
@@ -292,7 +276,7 @@
     <string name="sorted_media_reset_toast">Sıralanmış medya geçmişi sıfırlandı.</string>
     <string name="info_icon_desc">Bilgi</string>
 
-    <!-- Session Setup ViewModel -->
+    
     <string name="failed_load_folders">Medya klasörleri yüklenemedi: %1$s</string>
     <string name="failed_refresh_folders">Medya klasörleri yenilenemedi: %1$s</string>
     <string name="folder_renamed">Klasör başarıyla yeniden adlandırıldı</string>
@@ -323,7 +307,7 @@
     <string name="system_folders_category">Sistem Klasörleri</string>
     <string name="user_folders_category">Kullanıcı Klasörleri</string>
 
-    <!-- Onboarding Screen -->
+    
     <string name="onboarding_skip">Atla</string>
     <string name="onboarding_previous">Önceki</string>
     <string name="onboarding_next">Sonraki</string>
@@ -336,7 +320,7 @@
     <string name="permission_screen_instruction">Lütfen CleanSweep\'i kullanmak için cihaz ayarlarınızdan izin verin.</string>
     <string name="open_settings">Ayarları Aç</string>
 
-    <!-- Onboarding Pages -->
+    
     <string name="onboarding_p1_title">CleanSweep\'e Hoş Geldiniz</string>
     <string name="onboarding_p1_desc">Galerinizin kontrolünü elinize alın. Binlerce fotoğraf ve videoyu sıralamanın basit ve güçlü bir yolu.\nZamanınızı ve depolama alanınızı geri kazanın.</string>
     <string name="onboarding_p2_title">Basit Kaydırma</string>
@@ -350,7 +334,7 @@
     <string name="onboarding_p6_title">Kontrol Sizde</string>
     <string name="onboarding_p6_desc">Temel bilgileri öğrendiniz. Artık medyanızı daha önce hiç olmadığı kadar hızlı düzenlemeye hazırsınız.</string>
 
-    <!-- Settings Screen -->
+    
     <string name="search_settings_placeholder">Ayarlarda ara…</string>
     <string name="close_search">Aramayı kapat</string>
     <string name="search_settings_icon_desc">Arama ayarları</string>
@@ -362,14 +346,14 @@
     <string name="about_section_title">Hakkında</string>
     <string name="no_settings_found">\"%1$s\" için hiçbir ayar bulunamadı</string>
 
-    <!-- Language Settings -->
+    
     <string name="language_title">Dil</string>
     <string name="language_desc">Tercih ettiğiniz dili seçin.</string>
     <string name="language_system">Sistem Varsayılanı</string>
     <string name="language_english">English</string>
     <string name="language_italian">Italiano</string>
 
-    <!-- Theme Settings -->
+    
     <string name="theme_title">Tema</string>
     <string name="theme_system_display">Sistemi Takip Et</string>
     <string name="theme_light_display">Açık</string>
@@ -387,7 +371,7 @@
     <string name="accent_color_title">Vurgu Rengi</string>
     <string name="customize_colors_title">Renkleri özelleştir</string>
 
-    <!-- UI Layout Settings -->
+    
     <string name="folder_name_position_title">Klasör Adı Konumu</string>
     <string name="folder_name_position_desc">Sıralama ekranında geçerli klasör adının nerede görüntüleneceğini seçin.</string>
     <string name="folder_name_layout_above">Medya Kartının Üzerinde</string>
@@ -408,7 +392,7 @@
     <string name="use_full_screen_summary_title">Tam Ekran Özet Kullan</string>
     <string name="use_full_screen_summary_desc">Etkinleştirildiğinde, sayfanın maksimum yüksekliği gerektiğinde ekranı dolduracaktır.</string>
 
-    <!-- Swipe & Gesture Settings -->
+    
     <string name="swipe_sensitivity_title">Kaydırma Hassasiyeti</string>
     <string name="swipe_sensitivity_desc">Bir eylemi tetiklemek için ne kadar kaydırmanız gerektiğini ayarlayın.</string>
     <string name="sensitivity_low">Düşük</string>
@@ -420,7 +404,7 @@
     <string name="full_screen_swipe_title">Tam Ekran Kaydırma</string>
     <string name="full_screen_swipe_desc">Sadece görselin üzerinde değil, arka plan alanında da kaydırmaya izin ver.</string>
 
-    <!-- Video & Media Settings -->
+    
     <string name="default_video_speed_title">Varsayılan Video Hızı</string>
     <string name="default_video_speed_desc">Videolar için varsayılan oynatma hızını ayarlayın.</string>
     <string name="screenshot_deletes_video_title">Ekran Görüntüsü orijinal videoyu da siler</string>
@@ -432,7 +416,7 @@
     <string name="quality_balanced">Dengeli (85)</string>
     <string name="quality_low">Düşük (75)</string>
 
-    <!-- Folder Selection Settings -->
+    
     <string name="folder_selection_mode_title">Klasör Seçim Modu</string>
     <string name="mode_all_folders">Tüm Klasörler</string>
     <string name="mode_remember_previous">Öncekini Hatırla</string>
@@ -475,7 +459,7 @@
     <string name="desc_unselect_global">Geçerli arama filtresi tarafından gizlenen öğeler de dahil olmak üzere tüm seçimi temizler.</string>
     <string name="desc_unselect_visible">Sadece arama sonuçlarında o an görünür olan öğelerin seçimini kaldırır. Gizli seçimler seçili kalır.</string>
 
-    <!-- Duplicate Finder Settings -->
+    
     <string name="similarity_level_title">Benzerlik Seviyesi</string>
     <string name="similarity_level_strict">Sıkı</string>
     <string name="similarity_level_balanced">Dengeli</string>
@@ -500,7 +484,7 @@
     <string name="manage_exclude_list">Hariç Tutulanlar Listesini Yönet</string>
     <string name="manage_list_format">%1$s (%2$d)</string>
 
-    <!-- Advanced Settings -->
+    
     <string name="media_indexing_status_title">Medya İndeksleme Durumu</string>
     <string name="export_target_favorites_title">Hedef Favorileri Dışa Aktar</string>
     <string name="export_target_favorites_desc">Favori hedef klasörlerinizi bir dosyaya kaydedin.</string>
@@ -509,12 +493,12 @@
     <string name="reset_dialog_warnings_title">İletişim Kutusu Uyarılarını Sıfırla</string>
     <string name="reset_dialog_warnings_desc">Tüm onay iletişim kutularını tekrar göster.</string>
 
-    <!-- Help & Support Settings -->
+    
     <string name="onboarding_tutorial_title">Başlangıç Eğitimi</string>
     <string name="onboarding_tutorial_desc">Uygulama özelliklerini öğrenmek için başlangıç eğitimini tekrar oynatın.</string>
     <string name="replay_tutorial_button">Eğitimi Tekrar Oynat</string>
 
-    <!-- About Settings -->
+    
     <string name="support_development_title">Geliştirmeyi Destekle</string>
     <string name="support_development_desc">Projeyi destekle</string>
     <string name="version_title">Sürüm</string>
@@ -528,7 +512,7 @@
     <string name="open_source_licenses_title">Açık Kaynak Lisansları</string>
     <string name="open_source_licenses_desc">Açık kaynak lisanslarını görüntüleyin</string>
 
-    <!-- Settings Dialogs & Toasts -->
+    
     <string name="onboarding_replay_toast">Başlangıç eğitimi uygulamanın bir sonraki açılışında gösterilecektir.</string>
     <string name="no_target_favs_export">Dışa aktarılacak hedef favori yok.</string>
     <string name="no_existing_favs_export">Dışa aktarılacak mevcut favori klasör bulunamadı.</string>
@@ -567,7 +551,7 @@
     <string name="full_device_scan_complete">Tam cihaz taraması tamamlandı.</string>
     <string name="scan_failed_interrupted">Tarama başarısız oldu veya kesintiye uğradı.</string>
 
-    <!-- Advanced Dialogs -->
+    
     <string name="some_folders_not_found_title">Bazı Klasörler Bulunamadı</string>
     <string name="some_folders_not_found_body">Yedekleme dosyanızdaki şu klasörler mevcut değil. Onları oluşturmak istiyor musunuz?</string>
     <string name="reset_all_warnings_title">Tüm İletişim Kutusu Uyarıları Sıfırlansın mı?</string>
@@ -601,4 +585,22 @@
     <string name="address_copied">Adres kopyalandı</string>
     <string name="copy_address_icon_desc">Adresi Kopyala</string>
     <string name="funding_dialog_footer">İşlem açıklamasına GitHub kullanıcı adınızı eklemekten çekinmeyin!</string>
-</resources>
+<string name="language_turkish">Türkçe</string>
+
+    
+    <string name="swipe_right_action_title">Sağa Kaydırma Eylemi</string>
+    <string name="swipe_right_action_desc">Bir medya kartında sağa kaydırma hareketine bir kısayol atayın.</string>
+    <string name="swipe_left_action_title">Sola Kaydırma Eylemi</string>
+    <string name="swipe_left_action_desc">Bir medya kartında sola kaydırma hareketine bir kısayol atayın.</string>
+    <string name="swipe_up_action_title">Yukarı Kaydırma Eylemi</string>
+    <string name="swipe_up_action_desc">Bir medya kartında yukarı kaydırma hareketine bir kısayol atayın.</string>
+    <string name="action_keep">Tut</string>
+    <string name="action_delete">Sil</string>
+    <string name="action_next">Sonraki Medya</string>
+    <string name="action_previous">Önceki Medya</string>
+    <string name="action_skip_item">Öğeyi Atla</string>
+    <string name="action_move_to_edit">\'Düzenlenecekler\'e Taşı</string>
+    <string name="action_add_target_folder">Hedef Klasör Ekle</string>
+    <string name="action_share">Paylaş</string>
+    <string name="action_open_with">Birlikte Aç</string>
+    </resources>
