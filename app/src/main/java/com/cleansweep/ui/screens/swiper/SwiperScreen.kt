@@ -1447,6 +1447,54 @@ private fun MediaItemCard(
                                 exoPlayer = exoPlayer,
                                 modifier = Modifier.fillMaxSize()
                             )
+                        } else if (item.isAudio) {
+                            // Audio player UI
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(Color.Black.copy(alpha = 0.8f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.MusicNote,
+                                        contentDescription = "Music",
+                                        modifier = Modifier.size(64.dp),
+                                        tint = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                    Text(
+                                        text = item.title ?: item.displayName,
+                                        color = Color.White,
+                                        style = MaterialTheme.typography.headlineSmall,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (!item.artist.isNullOrEmpty()) {
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = item.artist ?: "",
+                                            color = Color.White.copy(alpha = 0.7f),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                    if (!item.album.isNullOrEmpty()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = item.album ?: "",
+                                            color = Color.White.copy(alpha = 0.5f),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                            }
                         } else {
                             val loader = if (item.mimeType == "image/gif") gifImageLoader else imageLoader
                             AsyncImage(
@@ -1508,6 +1556,24 @@ private fun MediaItemCard(
                                             contentDescription = stringResource(R.string.pending_conversion_desc),
                                             tint = Color.White,
                                             modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+                            } else if (item.isAudio) {
+                                // Audio duration display
+                                if (item.duration > 0) {
+                                    Box(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(8.dp)
+                                            .clip(RoundedCornerShape(4.dp))
+                                            .background(Color.Black.copy(alpha = 0.6f))
+                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                    ) {
+                                        Text(
+                                            text = formatDuration(item.duration),
+                                            color = Color.White,
+                                            style = MaterialTheme.typography.labelSmall
                                         )
                                     }
                                 }
@@ -1733,4 +1799,12 @@ private fun AlreadyOrganizedDialog(
             Text(stringResource(R.string.close_app))
         }
     }
+}
+
+
+private fun formatDuration(millis: Long): String {
+    val totalSeconds = millis / 1000
+    val minutes = totalSeconds / 60
+    val seconds = totalSeconds % 60
+    return String.format("%d:%02d", minutes, seconds)
 }
