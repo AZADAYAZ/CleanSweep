@@ -1270,16 +1270,33 @@ class DirectMediaRepositoryImpl @Inject constructor(
         }
     }
 
+    /**
+     * Compute the unsigned 32-bit MediaStore bucket ID for a folder path.
+     * Android's MediaProvider stores BUCKET_ID as an unsigned int, while
+     * Kotlin/Java String.hashCode() returns a signed int. Converting to
+     * unsigned (0..4294967295) is required for a correct match.
+     */
+    private fun bucketIdForPath(folderPath: String): String =
+        (folderPath.lowercase(Locale.ROOT).hashCode().toLong() and 0xFFFFFFFFL).toString()
+
     override suspend fun getFoldersMediaTypes(folderPaths: List<String>): Map<String, FolderMediaTypes> =
         withContext(Dispatchers.IO) {
             if (folderPaths.isEmpty()) return@withContext emptyMap()
             val result = mutableMapOf<String, FolderMediaTypes>()
-            // BUCKET_ID is a hash of the lowercase folder path. Query buckets instead of the
-            // DATA column (deprecated on Android 10+, unreliable values) to map each folder
-            // to the media types its files belong to.
-            val bucketIdToPath = folderPaths.distinct().associateBy { it.lowercase(Locale.ROOT).hashCode().toString() }
+            // BUCKET_ID is an UNSIGNED 32-bit hash of the lowercase folder path, stored as a
+            // numeric string by MediaStore. Using the signed hashCode() (as before) never
+            // matched, which made the type filter return no results. In addition, we also map
+            // the folder's display name so that hash collisions across Android versions never
+            // leave a folder unmatched.
+            val bucketIdToPath = mutableMapOf<String, MutableList<String>>()
+            val folderNameToPaths = mutableMapOf<String, MutableList<String>>()
+            for (folderPath in folderPaths.distinct()) {
+                bucketIdToPath.getOrPut(bucketIdForPath(folderPath)) { mutableListOf() }.add(folderPath)
+                folderNameToPaths.getOrPut(File(folderPath).name.lowercase(Locale.ROOT)) { mutableListOf() }.add(folderPath)
+            }
             val projection = arrayOf(
                 MediaStore.Files.FileColumns.BUCKET_ID,
+                MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME,
                 MediaStore.Files.FileColumns.MEDIA_TYPE
             )
             val selection = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (?, ?, ?)"
@@ -1297,17 +1314,27 @@ class DirectMediaRepositoryImpl @Inject constructor(
                     null
                 )?.use { cursor ->
                     val bucketColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID)
+                    val bucketNameColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_DISPLAY_NAME)
                     val mediaTypeColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
                     while (cursor.moveToNext()) {
                         val bucketId = cursor.getString(bucketColumn) ?: continue
-                        val folderPath = bucketIdToPath[bucketId] ?: continue
+                        val bucketName = cursor.getString(bucketNameColumn)
+                        // Match by unsigned bucket hash first; fall back to folder name match so
+                        // that a mismatched hash (different Android versions, canonical-path
+                        // differences) never causes the filter to miss a folder.
+                        val matchedPaths = bucketIdToPath[bucketId]?.toMutableList()
+                            ?: (bucketName?.lowercase(Locale.ROOT)?.let { folderNameToPaths[it] }?.toMutableList())
+                        if (matchedPaths.isNullOrEmpty()) continue
+                        for (folderPath in matchedPaths) {
                         val entry = result.getOrDefault(folderPath, FolderMediaTypes())
                         val mediaType = cursor.getInt(mediaTypeColumn)
-                        result[folderPath] = when (mediaType) {
+                        val updated = when (mediaType) {
                             MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE -> entry.copy(hasPhotos = true)
                             MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> entry.copy(hasVideos = true)
                             MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO -> entry.copy(hasMusic = true)
                             else -> entry
+                        }
+                        result[folderPath] = updated
                         }
                     }
                 }
