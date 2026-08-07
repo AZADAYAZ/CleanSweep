@@ -34,11 +34,16 @@ data class MediaItem(
     val bucketId: String,
     val bucketName: String,
     val isVideo: Boolean,
-    val width: Int,
-    val height: Int
+    val isAudio: Boolean = false,
+    val width: Int = 0,
+    val height: Int = 0,
+    val duration: Long = 0,
+    val artist: String? = null,
+    val album: String? = null,
+    val title: String? = null
 ) : Parcelable {
     val isImage: Boolean
-        get() = !isVideo
+        get() = !isVideo && !isAudio
 
     val filePath: String
         get() = when (uri.scheme) {

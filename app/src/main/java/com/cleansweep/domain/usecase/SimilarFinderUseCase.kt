@@ -212,19 +212,23 @@ class SimilarFinderUseCase @Inject constructor(
         similarityLevel: SimilarityThresholdLevel,
         denialKeys: Set<String>
     ): List<SimilarGroup> = coroutineScope {
-        val imagePaths = allPaths.filter { allDeviceMediaMap[it]?.isVideo == false }
+        val imagePaths = allPaths.filter { allDeviceMediaMap[it]?.isVideo == false && allDeviceMediaMap[it]?.isAudio == false }
         val videoPaths = allPaths.filter { allDeviceMediaMap[it]?.isVideo == true }
+        val audioPaths = allPaths.filter { allDeviceMediaMap[it]?.isAudio == true }
 
         val imageBuckets = buildBuckets(fullHashMap, imagePaths)
         val videoBuckets = buildBuckets(fullHashMap, videoPaths)
+        val audioBuckets = buildBuckets(fullHashMap, audioPaths)
 
         val imageGroupsDeferred = async { groupImages(imageBuckets, fullHashMap, similarityLevel, denialKeys) }
         val videoGroupsDeferred = async { groupVideos(videoBuckets, fullHashMap, similarityLevel, denialKeys) }
+        val audioGroupsDeferred = async { groupAudio(audioBuckets, fullHashMap, similarityLevel, denialKeys) }
 
         val imageGroups = imageGroupsDeferred.await()
         val videoGroups = videoGroupsDeferred.await()
+        val audioGroups = audioGroupsDeferred.await()
 
-        (imageGroups + videoGroups)
+        (imageGroups + videoGroups + audioGroups)
             .mapNotNull { (groupId, paths) ->
                 val items = paths.mapNotNull { allDeviceMediaMap[it] }
                 if (items.size > 1) {
@@ -374,7 +378,76 @@ class SimilarFinderUseCase @Inject constructor(
         groups.mapValues { it.value }
     }
 
+    private suspend fun groupAudio(
+        audioBuckets: Map<String, List<String>>,
+        fullHashMap: Map<String, PHashCache>,
+        similarityLevel: SimilarityThresholdLevel,
+        denialKeys: Set<String>
+    ): Map<String, Set<String>> = coroutineScope {
+        val groups = mutableMapOf<String, MutableSet<String>>()
+        val visited = mutableSetOf<String>()
+
+        val audioPHashThreshold = when (similarityLevel) {
+            SimilarityThresholdLevel.STRICT -> 2
+            SimilarityThresholdLevel.BALANCED -> 4
+            SimilarityThresholdLevel.LOOSE -> 7
+        }
+
+        val sortedBucketKeys = audioBuckets.keys.sorted()
+        val bucketKeyIndexMap = sortedBucketKeys.withIndex().associate { (index, key) -> key to index }
+
+        for ((_, pathsInBucket) in audioBuckets) {
+            for (pathA in pathsInBucket) {
+                ensureActive()
+                if (pathA in visited) continue
+
+                val cacheA = fullHashMap[pathA] ?: continue
+                val currentGroup = mutableSetOf(pathA)
+                visited.add(pathA)
+
+                val bucketKey = cacheA.pHash.substringBefore(',').take(2)
+                val bucketIndex = bucketKeyIndexMap[bucketKey] ?: continue
+                val searchIndices = (bucketIndex - 1)..(bucketIndex + 1)
+                val searchSpacePaths = searchIndices.flatMap { index ->
+                    sortedBucketKeys.getOrNull(index)?.let { key -> audioBuckets[key] } ?: emptyList()
+                }
+
+                for (pathB in searchSpacePaths) {
+                    if (pathA == pathB || pathB in visited) continue
+                    val cacheB = fullHashMap[pathB] ?: continue
+
+                    // Logical Denial check: Have these files been flagged as different by the user?
+                    if (SimilarityDenial.createKey(pathA, pathB) in denialKeys) continue
+
+                    if (areAudioHashesSimilar(cacheA.pHash, cacheB.pHash, audioPHashThreshold)) {
+                        currentGroup.add(pathB)
+                    }
+                }
+
+                if (currentGroup.size > 1) {
+                    visited.addAll(currentGroup)
+                    val groupId = "aud-${cacheA.pHash.substringBefore(',')}"
+                    groups.getOrPut(groupId) { mutableSetOf() }.addAll(currentGroup)
+                }
+            }
+        }
+        groups.mapValues { it.value }
+    }
+
     private fun areVideoHashesSimilar(hashesA: String, hashesB: String, threshold: Int): Boolean {
+        val hashListA = hashesA.split(',').filter { it.isNotBlank() }
+        val hashListB = hashesB.split(',').filter { it.isNotBlank() }
+        if (hashListA.isEmpty() || hashListB.isEmpty()) return false
+
+        // Check if any hash in A is similar to any hash in B
+        return hashListA.any { hashA ->
+            hashListB.any { hashB ->
+                PHashUtil.hammingDistance(hashA, hashB) <= threshold
+            }
+        }
+    }
+
+    private fun areAudioHashesSimilar(hashesA: String, hashesB: String, threshold: Int): Boolean {
         val hashListA = hashesA.split(',').filter { it.isNotBlank() }
         val hashListB = hashesB.split(',').filter { it.isNotBlank() }
         if (hashListA.isEmpty() || hashListB.isEmpty()) return false
