@@ -206,7 +206,7 @@ fun SwiperScreen(
                     }
                 }
                 Lifecycle.Event.ON_RESUME -> {
-                    if (uiState.currentItem?.isVideo == true) {
+                    if (uiState.currentItem?.isVideo == true || uiState.currentItem?.isAudio == true) {
                         exoPlayer.play()
                     }
                 }
@@ -224,12 +224,12 @@ fun SwiperScreen(
         exoPlayer.playWhenReady = false
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
-        if (currentItem != null && currentItem.isVideo) {
+        if (currentItem != null && (currentItem.isVideo || currentItem.isAudio)) {
             val exoMediaItem = ExoMediaItem.fromUri(currentItem.uri)
             exoPlayer.setMediaItem(exoMediaItem)
             exoPlayer.prepare()
 
-            if (uiState.videoPlaybackPosition > 0L) {
+            if (currentItem.isVideo && uiState.videoPlaybackPosition > 0L) {
                 exoPlayer.seekTo(uiState.videoPlaybackPosition)
             }
             exoPlayer.playWhenReady = true
@@ -1561,21 +1561,84 @@ private fun MediaItemCard(
                                     }
                                 }
                             } else if (item.isAudio) {
-                                // Audio duration display
-                                if (item.duration > 0) {
-                                    Box(
-                                        modifier = Modifier
-                                            .align(Alignment.TopEnd)
-                                            .padding(8.dp)
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(Color.Black.copy(alpha = 0.6f))
-                                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                                // Audio playback controls: play/pause + seek bar
+                                DisposableEffect(item.id) {
+                                    val listener = object : Player.Listener {
+                                        override fun onEvents(player: Player, events: Player.Events) {
+                                            if (events.containsAny(
+                                                    Player.EVENT_IS_PLAYING_CHANGED,
+                                                    Player.EVENT_PLAYBACK_STATE_CHANGED,
+                                                    Player.EVENT_POSITION_DISCONTINUITY
+                                                )
+                                            ) {
+                                                // Trigger recomposition to refresh slider value
+                                            }
+                                        }
+                                    }
+                                    exoPlayer.addListener(listener)
+                                    onDispose { exoPlayer.removeListener(listener) }
+                                }
+                                LaunchedEffect(item.id) {
+                                    while (true) {
+                                        delay(500L)
+                                        // Tick forces recomposition to refresh slider position
+                                    }
+                                }
+                                Column(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.Center
                                     ) {
-                                        Text(
-                                            text = formatDuration(item.duration),
-                                            color = Color.White,
-                                            style = MaterialTheme.typography.labelSmall
+                                        IconButton(
+                                            onClick = {
+                                                if (exoPlayer.isPlaying) exoPlayer.pause() else exoPlayer.play()
+                                            },
+                                            modifier = Modifier.size(48.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = if (exoPlayer.isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                                contentDescription = if (exoPlayer.isPlaying) "Duraklat" else "Oynat",
+                                                tint = Color.White,
+                                                modifier = Modifier.size(40.dp)
+                                            )
+                                        }
+                                    }
+                                    if (item.duration > 0) {
+                                        Slider(
+                                            value = exoPlayer.currentPosition.coerceIn(0L, item.duration.coerceAtLeast(1L)).toFloat(),
+                                            onValueChange = { newValue ->
+                                                exoPlayer.seekTo(newValue.toLong())
+                                            },
+                                            valueRange = 0f..item.duration.coerceAtLeast(1L).toFloat(),
+                                            modifier = Modifier.fillMaxWidth(),
+                                            colors = SliderDefaults.colors(
+                                                thumbColor = Color.White,
+                                                activeTrackColor = Color.White,
+                                                inactiveTrackColor = Color.White.copy(alpha = 0.35f)
+                                            )
                                         )
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 8.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = formatDuration(exoPlayer.currentPosition),
+                                                color = Color.White.copy(alpha = 0.8f),
+                                                style = MaterialTheme.typography.labelSmall
+                                            )
+                                            Text(
+                                                text = formatDuration(item.duration),
+                                                color = Color.White.copy(alpha = 0.8f),
+                                                style = MaterialTheme.typography.labelSmall
+                                            )
+                                        }
                                     }
                                 }
                             }

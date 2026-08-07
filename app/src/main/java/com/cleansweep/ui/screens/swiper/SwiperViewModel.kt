@@ -1549,8 +1549,8 @@ class SwiperViewModel @Inject constructor(
     }
 
     fun toggleMute(hasAudio: Boolean) {
-        if (_uiState.value.currentItem?.isVideo != true) return
-
+        val currentItem = _uiState.value.currentItem
+        if (currentItem?.isVideo != true && currentItem?.isAudio != true) return
         val currentlyMuted = _uiState.value.isVideoMuted
         if (currentlyMuted) {
             if (hasAudio) {
