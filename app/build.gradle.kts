@@ -16,7 +16,8 @@ ksp {
 
 android {
     namespace = "com.cleansweep"
-    compileSdk = 35
+    // Recent AndroidX releases require compiling against API 36 or newer.
+    compileSdk = 36
 
     kotlin {
         jvmToolchain(17)
