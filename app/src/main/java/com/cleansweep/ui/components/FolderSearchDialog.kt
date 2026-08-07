@@ -55,6 +55,7 @@ fun FolderSearchDialog(
     onFolderSelected: (String) -> Unit,
     onConfirm: () -> Unit,
     onSearch: () -> Unit = {},
+    onTypeFilterChanged: ((filterPhotos: Boolean, filterVideos: Boolean, filterMusic: Boolean) -> Unit)? = null,
     formatListItemTitle: (String) -> Pair<String, String> = { path ->
         Pair(
             path.substringAfterLast('/'),
@@ -104,6 +105,36 @@ fun FolderSearchDialog(
             ) {
                 Text(title, style = MaterialTheme.typography.headlineSmall)
                 Spacer(modifier = Modifier.height(16.dp))
+
+                if (onTypeFilterChanged != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        FilterChip(
+                            selected = state.filterPhotos,
+                            onClick = {
+                                onTypeFilterChanged(!state.filterPhotos, state.filterVideos, state.filterMusic)
+                            },
+                            label = { Text("Fotoğraf") }
+                        )
+                        FilterChip(
+                            selected = state.filterVideos,
+                            onClick = {
+                                onTypeFilterChanged(state.filterPhotos, !state.filterVideos, state.filterMusic)
+                            },
+                            label = { Text("Video") }
+                        )
+                        FilterChip(
+                            selected = state.filterMusic,
+                            onClick = {
+                                onTypeFilterChanged(state.filterPhotos, state.filterVideos, !state.filterMusic)
+                            },
+                            label = { Text("Müzik") }
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
                 OutlinedTextField(
                     value = state.searchQuery,

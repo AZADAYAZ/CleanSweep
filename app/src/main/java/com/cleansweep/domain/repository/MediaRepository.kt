@@ -19,6 +19,7 @@ package com.cleansweep.domain.repository
 
 import com.cleansweep.data.model.MediaItem
 import com.cleansweep.domain.model.FolderDetails
+import com.cleansweep.domain.model.FolderMediaTypes
 import com.cleansweep.domain.model.IndexingStatus
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,6 +50,12 @@ interface MediaRepository {
     suspend fun isDirectory(path: String): Boolean
     suspend fun getSubdirectories(path: String): List<String>
     fun observeAllFolders(): Flow<List<Pair<String, String>>>
+
+    /**
+     * Returns the media types contained in each of the given folders (recursively).
+     * Used to power the Photos/Videos/Music type filter in the folder picker.
+     */
+    suspend fun getFoldersMediaTypes(folderPaths: List<String>): Map<String, FolderMediaTypes>
     suspend fun scanFolders(folderPaths: List<String>)
     suspend fun scanPathsAndWait(paths: List<String>): Boolean
     suspend fun getUnindexedMediaPaths(): List<String>

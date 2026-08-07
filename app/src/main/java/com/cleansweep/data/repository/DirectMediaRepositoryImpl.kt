@@ -38,6 +38,7 @@ import com.cleansweep.domain.bus.AppLifecycleEventBus
 import com.cleansweep.domain.bus.FolderUpdateEvent
 import com.cleansweep.domain.bus.FolderUpdateEventBus
 import com.cleansweep.domain.model.FolderDetails
+import com.cleansweep.domain.model.FolderMediaTypes
 import com.cleansweep.domain.model.IndexingStatus
 import com.cleansweep.domain.repository.MediaRepository
 import com.cleansweep.util.FileManager
@@ -1268,6 +1269,50 @@ class DirectMediaRepositoryImpl @Inject constructor(
                 .sortedBy { it.second.lowercase() }
         }
     }
+
+    override suspend fun getFoldersMediaTypes(folderPaths: List<String>): Map<String, FolderMediaTypes> =
+        withContext(Dispatchers.IO) {
+            if (folderPaths.isEmpty()) return@withContext emptyMap()
+            val result = mutableMapOf<String, FolderMediaTypes>()
+            val projection = arrayOf(MediaStore.Files.FileColumns.DATA, MediaStore.Files.FileColumns.MEDIA_TYPE)
+            val selection = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (?, ?, ?)"
+            val selectionArgs = arrayOf(
+                MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
+                MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO.toString(),
+                MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO.toString()
+            )
+            try {
+                context.contentResolver.query(
+                    MediaStore.Files.getContentUri("external"),
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null
+                )?.use { cursor ->
+                    val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
+                    val mediaTypeColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
+                    while (cursor.moveToNext()) {
+                        val path = cursor.getString(dataColumn) ?: continue
+                        // Match each media file to the requested folders it belongs to
+                        for (folderPath in folderPaths) {
+                            if (path.startsWith(folderPath, ignoreCase = true)) {
+                                val entry = result.getOrDefault(folderPath, FolderMediaTypes())
+                                val mediaType = cursor.getInt(mediaTypeColumn)
+                                result[folderPath] = when (mediaType) {
+                                    MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE -> entry.copy(hasPhotos = true)
+                                    MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> entry.copy(hasVideos = true)
+                                    MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO -> entry.copy(hasMusic = true)
+                                    else -> entry
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Log.w(logTag, "Failed to compute folder media types", e)
+            }
+            return@withContext result
+        }
 
     override suspend fun scanFolders(folderPaths: List<String>) {
         fileOperationsHelper.scanPaths(folderPaths)

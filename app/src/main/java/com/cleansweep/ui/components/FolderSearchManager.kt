@@ -18,6 +18,7 @@
 package com.cleansweep.ui.components
 
 import androidx.compose.runtime.Stable
+import com.cleansweep.domain.model.FolderMediaTypes
 import com.cleansweep.domain.repository.MediaRepository
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineScope
@@ -39,7 +40,11 @@ data class FolderSearchState(
     val displayedResults: List<String> = emptyList(),
     val isLoading: Boolean = false,
     val isPreFilteredMode: Boolean = false,
-    val allFolders: List<Pair<String, String>> = emptyList()
+    val allFolders: List<Pair<String, String>> = emptyList(),
+    val folderMediaTypes: Map<String, FolderMediaTypes> = emptyMap(),
+    val filterPhotos: Boolean = false,
+    val filterVideos: Boolean = false,
+    val filterMusic: Boolean = false
 )
 
 @ViewModelScoped
@@ -51,18 +56,56 @@ class FolderSearchManager @Inject constructor(
 
     private val calculationContext = Dispatchers.Default
 
+    private fun applyTypeFilter(
+        folders: List<Pair<String, String>>,
+        filterPhotos: Boolean,
+        filterVideos: Boolean,
+        filterMusic: Boolean,
+        folderMediaTypes: Map<String, FolderMediaTypes>
+    ): List<Pair<String, String>> {
+        val typeFilterActive = filterPhotos || filterVideos || filterMusic
+        if (!typeFilterActive) return folders
+        return folders.filter { (path, _) ->
+            val types = folderMediaTypes[path] ?: FolderMediaTypes()
+            (filterPhotos && types.hasPhotos) ||
+                (filterVideos && types.hasVideos) ||
+                (filterMusic && types.hasMusic)
+        }
+    }
+
     private fun calculateResults(
         query: String,
         browsePath: String?,
         sourceFolders: List<Pair<String, String>>,
         isPreFiltered: Boolean
+    ): List<String> = calculateResults(
+        query,
+        browsePath,
+        sourceFolders,
+        isPreFiltered,
+        false,
+        false,
+        false,
+        emptyMap()
+    )
+
+    private fun calculateResults(
+        query: String,
+        browsePath: String?,
+        sourceFolders: List<Pair<String, String>>,
+        isPreFiltered: Boolean,
+        filterPhotos: Boolean,
+        filterVideos: Boolean,
+        filterMusic: Boolean,
+        folderMediaTypes: Map<String, FolderMediaTypes>
     ): List<String> {
+        val typeFiltered = applyTypeFilter(sourceFolders, filterPhotos, filterVideos, filterMusic, folderMediaTypes)
         val results = if (query.isNotBlank()) {
-            sourceFolders.filter { (path, name) ->
+            typeFiltered.filter { (path, name) ->
                 name.contains(query, ignoreCase = true) || path.contains(query, ignoreCase = true)
             }
         } else if (!browsePath.isNullOrBlank()) {
-            sourceFolders.filter { (path, _) ->
+            typeFiltered.filter { (path, _) ->
                 // Check if the item's path is a direct child of the browsePath
                 val parentDir = File(path).parent
                 parentDir?.equals(browsePath, ignoreCase = true) == true
@@ -70,10 +113,10 @@ class FolderSearchManager @Inject constructor(
         } else {
             // Display root folders when not browsing or searching
             if (isPreFiltered) {
-                sourceFolders
+                typeFiltered
             } else {
-                val allPaths = sourceFolders.map { it.first }.toSet()
-                sourceFolders.filter { (path, _) ->
+                val allPaths = typeFiltered.map { it.first }.toSet()
+                typeFiltered.filter { (path, _) ->
                     val parent = File(path).parent
                     parent == null || !allPaths.contains(parent)
                 }
@@ -103,12 +146,17 @@ class FolderSearchManager @Inject constructor(
                 )
             }
 
+            val folderMediaTypes = withContext(calculationContext) {
+                mediaRepository.getFoldersMediaTypes(availableFolders.map { it.first })
+            }
+
             _state.update {
                 it.copy(
                     browsePath = initialPath,
                     isLoading = false,
                     displayedResults = initialResults,
-                    allFolders = availableFolders
+                    allFolders = availableFolders,
+                    folderMediaTypes = folderMediaTypes
                 )
             }
         }
@@ -140,7 +188,36 @@ class FolderSearchManager @Inject constructor(
             currentState.copy(
                 searchQuery = query,
                 // Do not nullify browsePath. Preserve it during search.
-                displayedResults = calculateResults(query, currentState.browsePath, currentState.allFolders, currentState.isPreFilteredMode)
+                displayedResults = calculateResults(
+                    query,
+                    currentState.browsePath,
+                    currentState.allFolders,
+                    currentState.isPreFilteredMode,
+                    currentState.filterPhotos,
+                    currentState.filterVideos,
+                    currentState.filterMusic,
+                    currentState.folderMediaTypes
+                )
+            )
+        }
+    }
+
+    fun updateTypeFilter(filterPhotos: Boolean, filterVideos: Boolean, filterMusic: Boolean) {
+        _state.update { currentState ->
+            currentState.copy(
+                filterPhotos = filterPhotos,
+                filterVideos = filterVideos,
+                filterMusic = filterMusic,
+                displayedResults = calculateResults(
+                    currentState.searchQuery,
+                    currentState.browsePath,
+                    currentState.allFolders,
+                    currentState.isPreFilteredMode,
+                    filterPhotos,
+                    filterVideos,
+                    filterMusic,
+                    currentState.folderMediaTypes
+                )
             )
         }
     }
@@ -150,7 +227,16 @@ class FolderSearchManager @Inject constructor(
             currentState.copy(
                 browsePath = path,
                 searchQuery = "",
-                displayedResults = calculateResults("", path, currentState.allFolders, currentState.isPreFilteredMode)
+                displayedResults = calculateResults(
+                    "",
+                    path,
+                    currentState.allFolders,
+                    currentState.isPreFilteredMode,
+                    currentState.filterPhotos,
+                    currentState.filterVideos,
+                    currentState.filterMusic,
+                    currentState.folderMediaTypes
+                )
             )
         }
     }
@@ -169,7 +255,16 @@ class FolderSearchManager @Inject constructor(
                 currentState.copy(
                     searchQuery = "", // Clear the query
                     // Recalculate results based on the preserved browsePath
-                    displayedResults = calculateResults("", currentState.browsePath, currentState.allFolders, currentState.isPreFilteredMode)
+                    displayedResults = calculateResults(
+                        "",
+                        currentState.browsePath,
+                        currentState.allFolders,
+                        currentState.isPreFilteredMode,
+                        currentState.filterPhotos,
+                        currentState.filterVideos,
+                        currentState.filterMusic,
+                        currentState.folderMediaTypes
+                    )
                 )
             } else {
                 currentState // No change needed

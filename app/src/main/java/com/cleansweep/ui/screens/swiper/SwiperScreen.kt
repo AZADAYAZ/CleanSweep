@@ -487,6 +487,7 @@ fun SwiperScreen(
                     onPathSelected = viewModel::onPathSelected,
                     onSearchFocusChanged = viewModel::onSearchFocusChanged,
                     onResetFolderSelection = viewModel::resetFolderSelectionToDefault,
+                    onTypeFilterChanged = viewModel.folderSearchManager::updateTypeFilter,
                     onConfirm = viewModel::confirmFolderSelection
                 )
             }

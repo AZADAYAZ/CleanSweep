@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import com.cleansweep.data.repository.AddFolderFocusTarget
 import com.cleansweep.ui.components.AppDialog
+import com.cleansweep.domain.model.FolderMediaTypes
 import com.cleansweep.ui.components.FolderSearchState
 import com.cleansweep.ui.theme.LocalAppTheme
 import com.cleansweep.ui.theme.isDark
@@ -89,6 +91,7 @@ fun AddTargetFolderDialog(
     onPathSelected: (String) -> Unit,
     onSearchFocusChanged: (Boolean) -> Unit,
     onResetFolderSelection: () -> Unit,
+    onTypeFilterChanged: (filterPhotos: Boolean, filterVideos: Boolean, filterMusic: Boolean) -> Unit,
     onConfirm: (newFolderName: String, addToFavorites: Boolean, alsoMove: Boolean) -> Unit
 ) {
     var newFolderName by remember { mutableStateOf("") }
@@ -128,6 +131,11 @@ fun AddTargetFolderDialog(
             }
         }
     }
+
+    val filterPhotos = folderSearchState.filterPhotos
+    val filterVideos = folderSearchState.filterVideos
+    val filterMusic = folderSearchState.filterMusic
+    val typeFilterActive = filterPhotos || filterVideos || filterMusic
 
     val hintState = remember(newFolderName, folderSearchState.browsePath, hintOnExistingFolderName, folderSearchState.allFolders) {
         if (hintOnExistingFolderName && newFolderName.isNotBlank() && folderSearchState.browsePath != null) {
@@ -191,6 +199,59 @@ fun AddTargetFolderDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    FilterChip(
+                        selected = filterPhotos,
+                        onClick = {
+                            onTypeFilterChanged(!filterPhotos, filterVideos, filterMusic)
+                        },
+                        label = { Text("Fotoğraf") },
+                        leadingIcon = {
+                            if (filterPhotos) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    )
+                    FilterChip(
+                        selected = filterVideos,
+                        onClick = {
+                            onTypeFilterChanged(filterPhotos, !filterVideos, filterMusic)
+                        },
+                        label = { Text("Video") },
+                        leadingIcon = {
+                            if (filterVideos) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    )
+                    FilterChip(
+                        selected = filterMusic,
+                        onClick = {
+                            onTypeFilterChanged(filterPhotos, filterVideos, !filterMusic)
+                        },
+                        label = { Text("Müzik") },
+                        leadingIcon = {
+                            if (filterMusic) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    )
+                }
                 OutlinedTextField(
                     value = folderSearchState.searchQuery,
                     onValueChange = onSearchQueryChange,
