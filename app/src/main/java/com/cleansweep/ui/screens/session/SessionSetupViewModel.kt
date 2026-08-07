@@ -29,6 +29,7 @@ import com.cleansweep.data.repository.UnselectScanScope
 import com.cleansweep.domain.bus.FolderUpdateEvent
 import com.cleansweep.domain.bus.FolderUpdateEventBus
 import com.cleansweep.domain.model.FolderDetails
+import com.cleansweep.domain.model.FolderMediaTypes
 import com.cleansweep.domain.repository.MediaRepository
 import com.cleansweep.ui.components.FolderSearchManager
 import com.cleansweep.ui.navigation.RESET_SEARCH_RESULT_KEY
@@ -85,7 +86,12 @@ data class SessionSetupUiState(
     // Contextual Selection Mode
     val isContextualSelectionMode: Boolean = false,
     val contextSelectedFolderPaths: Set<String> = emptySet(),
-    val canFavoriteContextualSelection: Boolean = false
+    val canFavoriteContextualSelection: Boolean = false,
+
+    // Type filter for the folder picker (Photos/Videos/Music)
+    val filterPhotos: Boolean = false,
+    val filterVideos: Boolean = false,
+    val filterMusic: Boolean = false
 )
 
 @HiltViewModel
@@ -113,6 +119,12 @@ class SessionSetupViewModel @Inject constructor(
     private var hasInitializedSelection = false
     private val _isManualRefreshing = MutableStateFlow(false)
 
+    private val folderMediaTypes = MutableStateFlow<Map<String, FolderMediaTypes>>(emptyMap())
+
+    fun updateTypeFilter(filterPhotos: Boolean, filterVideos: Boolean, filterMusic: Boolean) {
+        _uiState.update { it.copy(filterPhotos = filterPhotos, filterVideos = filterVideos, filterMusic = filterMusic) }
+    }
+
 
     companion object {
         private const val logTag ="SessionSetupViewModel"
@@ -124,6 +136,7 @@ class SessionSetupViewModel @Inject constructor(
     }
 
     private fun initialize() {
+        loadFolderMediaTypes()
         viewModelScope.launch {
             // Step 1: Check for cache existence to decide if we need to show the scanning message.
             val hasCache = mediaRepository.hasCache()
@@ -213,19 +226,23 @@ class SessionSetupViewModel @Inject constructor(
             val showFavoritesFlow = preferencesRepository.showFavoritesFirstInSetupFlow
             val searchQueryFlow = _uiState.map { it.searchQuery }.distinctUntilChanged().debounce(200L)
             val sortOptionFlow = _uiState.map { it.currentSortOption }.distinctUntilChanged()
+            val typeFilterFlow = _uiState.map { Triple(it.filterPhotos, it.filterVideos, it.filterMusic) }.distinctUntilChanged()
+
+            val searchAndSortAndFilterFlow = combine(searchQueryFlow, sortOptionFlow, typeFilterFlow) { query, sortOption, typeFilter ->
+                Triple(query, sortOption, typeFilter)
+            }
 
             combine(
                 dbFolderDetailsFlow,
                 favoritesFlow,
                 showFavoritesFlow,
-                searchQueryFlow,
-                sortOptionFlow
-            ) { foldersToProcess, favorites, showFavorites, query, sortOption ->
+                searchAndSortAndFilterFlow
+            ) { foldersToProcess, favorites, showFavorites, (query, sortOption, typeFilter) ->
 
                 if (_isManualRefreshing.value && foldersToProcess.isEmpty()) {
                     return@combine null // Skip emission during refresh wipe
                 }
-                processFolderDetails(foldersToProcess, favorites, showFavorites, query, sortOption)
+                processFolderDetails(foldersToProcess, favorites, showFavorites, query, sortOption, typeFilter.first, typeFilter.second, typeFilter.third)
 
             }.filterNotNull().catch { e ->
                 Log.e(logTag, "Error in folder processing flow", e)
@@ -260,12 +277,27 @@ class SessionSetupViewModel @Inject constructor(
         favorites: Set<String>,
         showFavorites: Boolean,
         query: String,
-        sortOption: FolderSortOption
+        sortOption: FolderSortOption,
+        filterPhotos: Boolean = false,
+        filterVideos: Boolean = false,
+        filterMusic: Boolean = false
     ): Triple<List<FolderCategory>, Set<String>, List<FolderDetails>> {
-        val searchedFolders = if (query.isBlank()) {
-            foldersToProcess
+        val typeFilterActive = filterPhotos || filterVideos || filterMusic
+        val currentMediaTypes = folderMediaTypes.value
+        val typeFilteredFolders = if (typeFilterActive) {
+            foldersToProcess.filter { folder ->
+                val types = currentMediaTypes[folder.path]
+                (filterPhotos && types?.hasPhotos == true) ||
+                    (filterVideos && types?.hasVideos == true) ||
+                    (filterMusic && types?.hasMusic == true)
+            }
         } else {
-            foldersToProcess.filter { it.name.contains(query, ignoreCase = true) }
+            foldersToProcess
+        }
+        val searchedFolders = if (query.isBlank()) {
+            typeFilteredFolders
+        } else {
+            typeFilteredFolders.filter { it.name.contains(query, ignoreCase = true) }
         }
 
         val favoriteFolders = searchedFolders.filter { it.path in favorites }
@@ -321,6 +353,19 @@ class SessionSetupViewModel @Inject constructor(
         }
     }
 
+
+    private fun loadFolderMediaTypes() {
+        viewModelScope.launch {
+            withContext(kotlinx.coroutines.Dispatchers.IO) {
+                try {
+                    val allFolders = mediaRepository.observeMediaFoldersWithDetails().first()
+                    folderMediaTypes.value = mediaRepository.getFoldersMediaTypes(allFolders.map { it.path })
+                } catch (e: Exception) {
+                    Log.w(logTag, "Failed to load folder media types", e)
+                }
+            }
+        }
+    }
 
     fun refreshFolders() {
         viewModelScope.launch {

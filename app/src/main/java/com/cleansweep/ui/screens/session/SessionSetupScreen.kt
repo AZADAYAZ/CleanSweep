@@ -339,6 +339,49 @@ fun SessionSetupScreen(
                     }
                 } else null
             )
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                FilterChip(
+                    selected = uiState.filterPhotos,
+                    onClick = {
+                        viewModel.updateTypeFilter(!uiState.filterPhotos, uiState.filterVideos, uiState.filterMusic)
+                    },
+                    label = { Text("Fotoğraf") },
+                    leadingIcon = {
+                        if (uiState.filterPhotos) {
+                            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                )
+                FilterChip(
+                    selected = uiState.filterVideos,
+                    onClick = {
+                        viewModel.updateTypeFilter(uiState.filterPhotos, !uiState.filterVideos, uiState.filterMusic)
+                    },
+                    label = { Text("Video") },
+                    leadingIcon = {
+                        if (uiState.filterVideos) {
+                            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                )
+                FilterChip(
+                    selected = uiState.filterMusic,
+                    onClick = {
+                        viewModel.updateTypeFilter(uiState.filterPhotos, uiState.filterVideos, !uiState.filterMusic)
+                    },
+                    label = { Text("Müzik") },
+                    leadingIcon = {
+                        if (uiState.filterMusic) {
+                            Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
             PullToRefreshBox(
                 isRefreshing = uiState.isRefreshing,
                 onRefresh = viewModel::refreshFolders,
