@@ -84,13 +84,10 @@ android {
     }
 }
 
-// Configure Kotlin compiler to output more warnings
+// Kotlin compiler configuration
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
     compilerOptions {
-        // Enable reporting of unused code for optimization purposes
-        freeCompilerArgs.add("-Xreport-unused-for-optimization")
-        // Enable all Kotlin compiler lint warnings
-        freeCompilerArgs.add("-Xlint:all")
+        // Suppress specific warnings if needed, but avoid unsupported flags
     }
 }
 
