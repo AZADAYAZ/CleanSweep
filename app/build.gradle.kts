@@ -16,7 +16,7 @@ ksp {
 
 android {
     namespace = "com.cleansweep"
-    compileSdk = 36
+    compileSdk = 35
 
     kotlin {
         jvmToolchain(17)
@@ -37,8 +37,8 @@ android {
 
     defaultConfig {
         applicationId = "com.cleansweep"
-        minSdk = 29
-        targetSdk = 36
+        minSdk = 24
+        targetSdk = 35
         versionCode = 2
         versionName = "1.0.0"
 
