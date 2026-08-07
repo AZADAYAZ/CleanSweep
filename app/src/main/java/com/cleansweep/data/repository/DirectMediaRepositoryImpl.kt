@@ -301,7 +301,7 @@ class DirectMediaRepositoryImpl @Inject constructor(
         for (file in sortedFileIndex) {
             currentCoroutineContext().ensureActive()
 
-            val mediaItem = mediaStoreDataMap[file.absolutePath]?.let { cache ->
+            val mediaItem: MediaItem? = mediaStoreDataMap[file.absolutePath]?.let { cache ->
                 createMediaItemFromMediaStore(file, cache)
             } ?: run {
                 unindexedPathsToScan.add(file.absolutePath) // This file was missed by MediaStore, queue it for indexing.

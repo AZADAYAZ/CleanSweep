@@ -50,6 +50,8 @@ import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.LibraryDefaults
 import com.mikepenz.aboutlibraries.ui.compose.libraryColors
+import com.mikepenz.aboutlibraries.ui.compose.chipColors
+import com.mikepenz.aboutlibraries.ui.compose.libraryColors
 import com.mikepenz.aboutlibraries.ui.compose.android.rememberLibraries
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -130,8 +132,12 @@ fun OpenSourceLicensesScreen(onNavigateUp: () -> Unit) {
                     colors = LibraryDefaults.libraryColors(
                         backgroundColor = MaterialTheme.colorScheme.background,
                         contentColor = MaterialTheme.colorScheme.onBackground,
-                        badgeBackgroundColor = MaterialTheme.colorScheme.primaryContainer,
-                        badgeContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        versionChipColors = LibraryDefaults.chipColors(containerColor = MaterialTheme.colorScheme.background),
+                        licenseChipColors = LibraryDefaults.chipColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                        ),
+                        fundingChipColors = LibraryDefaults.chipColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
                     ),
                     // Intercept the click to show our themed dialog instead of the default one.
                     onLibraryClick = { library ->
