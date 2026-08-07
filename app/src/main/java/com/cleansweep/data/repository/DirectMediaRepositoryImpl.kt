@@ -1274,7 +1274,14 @@ class DirectMediaRepositoryImpl @Inject constructor(
         withContext(Dispatchers.IO) {
             if (folderPaths.isEmpty()) return@withContext emptyMap()
             val result = mutableMapOf<String, FolderMediaTypes>()
-            val projection = arrayOf(MediaStore.Files.FileColumns.DATA, MediaStore.Files.FileColumns.MEDIA_TYPE)
+            // BUCKET_ID is a hash of the lowercase folder path. Query buckets instead of the
+            // DATA column (deprecated on Android 10+, unreliable values) to map each folder
+            // to the media types its files belong to.
+            val bucketIdToPath = folderPaths.distinct().associateBy { it.lowercase(Locale.ROOT).hashCode().toString() }
+            val projection = arrayOf(
+                MediaStore.Files.FileColumns.BUCKET_ID,
+                MediaStore.Files.FileColumns.MEDIA_TYPE
+            )
             val selection = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (?, ?, ?)"
             val selectionArgs = arrayOf(
                 MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE.toString(),
@@ -1289,22 +1296,18 @@ class DirectMediaRepositoryImpl @Inject constructor(
                     selectionArgs,
                     null
                 )?.use { cursor ->
-                    val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
+                    val bucketColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.BUCKET_ID)
                     val mediaTypeColumn = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
                     while (cursor.moveToNext()) {
-                        val path = cursor.getString(dataColumn) ?: continue
-                        // Match each media file to the requested folders it belongs to
-                        for (folderPath in folderPaths) {
-                            if (path.startsWith(folderPath, ignoreCase = true)) {
-                                val entry = result.getOrDefault(folderPath, FolderMediaTypes())
-                                val mediaType = cursor.getInt(mediaTypeColumn)
-                                result[folderPath] = when (mediaType) {
-                                    MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE -> entry.copy(hasPhotos = true)
-                                    MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> entry.copy(hasVideos = true)
-                                    MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO -> entry.copy(hasMusic = true)
-                                    else -> entry
-                                }
-                            }
+                        val bucketId = cursor.getString(bucketColumn) ?: continue
+                        val folderPath = bucketIdToPath[bucketId] ?: continue
+                        val entry = result.getOrDefault(folderPath, FolderMediaTypes())
+                        val mediaType = cursor.getInt(mediaTypeColumn)
+                        result[folderPath] = when (mediaType) {
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE -> entry.copy(hasPhotos = true)
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> entry.copy(hasVideos = true)
+                            MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO -> entry.copy(hasMusic = true)
+                            else -> entry
                         }
                     }
                 }
